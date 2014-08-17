@@ -23,9 +23,9 @@ Wellington Soares well.cco@gmail.com
 ##Thanks
 The code is based on the following implementations: 
 
-https://github.com/nusofthq/Recordmp3js 
-https://github.com/akrennmair/speech-to-server
-https://github.com/remusnegrota/Recorderjs
++ https://github.com/nusofthq/Recordmp3js 
++ https://github.com/akrennmair/speech-to-server
++ https://github.com/remusnegrota/Recorderjs
 
 ##Contribution
 
