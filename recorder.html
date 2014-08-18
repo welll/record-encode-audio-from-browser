@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Record/Encode Audio</title>
+
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> 
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> 
+
+  <style type='text/css'>
+    body{ padding: 15px; margin: 15px;}
+    
+  </style>
+
+</head>
+<body>
+
+  <h1>Record/Encode Audio on Browser using the WebAudio API and "ported" libraries.</h1>
+  <p>
+      August 17, 2014: Version 0.0.1
+  </p>
+
+  <h2>Platforms and Browsers</h2>
+  <ul>
+    <li>Chrome 32+</li>
+  </ul>
+
+  <h2>Codecs</h2>
+  <ul>
+    <li> MP3: 22.050Hz && 128Kbps using the ported liblame</li>
+    <li> Ogg-Vorbis: @TODO</li>
+    <li> Spx: @TODO</li>
+    <li> Flac: @TODO</li>
+
+  </ul>
+
+
+  <button  class="btn btn-default" onclick="startRecording(this);">Record</button>
+  <button   class="btn btn-default"  onclick="stopRecording(this);" disabled>Stop</button>
+  
+  <h2>Recordings</h2>
+  <ul id="recordingslist"></ul>
+  
+  <h2>Log</h2>
+  <pre id="log"></pre>
+
+  <script>
+
+  function logHTML(e, data) {
+    log.innerHTML += "\n" + e + " " + (data || '');
+  }
+
+
+  var audioContext;
+  var audioRecorder;
+
+
+  var _realAudioInput;
+
+
+  function handlerStartUserMedia(stream) {
+
+    console.log('handlerStartUserMedia');
+    console.log('sampleRate:'+ audioContext.sampleRate);
+
+    // MEDIA STREAM SOURCE -> ZERO GAIN >
+    _realAudioInput = audioContext.createMediaStreamSource(stream);
+
+    audioRecorder = new Recorder(_realAudioInput);
+
+
+  }
+
+  function handlerErrorUserMedia(e) {
+      logHTML('No live audio input: ' + e);
+  }
+
+
+  function startRecording(button) {
+
+    if(!audioRecorder)
+      return;
+    
+ 
+    audioRecorder && audioRecorder.record();
+
+    //GUI
+    button.disabled = true;
+    button.nextElementSibling.disabled = false;
+
+    logHTML('Recording...');
+
+
+  }
+
+  function stopRecording(button) {
+
+    if(!audioRecorder)
+      return;
+
+
+    audioRecorder && audioRecorder.stop();
+
+    //GUI
+    button.disabled = true;
+    button.previousElementSibling.disabled = false;
+
+    logHTML('Stopped recording.');
+ 
+
+  }
+
+
+  window.onload = function init() {
+
+    //try {
+
+      // webkit shim.
+      window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
+
+      navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+      window.URL = window.URL || window.webkitURL;
+      
+      audioContext = new AudioContext;
+
+      logHTML('Audio context set up.');
+      logHTML('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+
+    //} catch (e) {
+
+    //  alert('No web audio support in this browser!');
+
+    //}
+
+    
+    navigator.getUserMedia({vide:false, audio: true}, handlerStartUserMedia, handlerErrorUserMedia);
+
+  };
+
+  </script>
+
+   <script src="js/vendor/jquery-1.11.0.min.js"></script>  
+   <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+  <script src="js/recorder.js"></script>
+
+</body>
+</html>
