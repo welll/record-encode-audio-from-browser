@@ -2,36 +2,36 @@
 # Record/Encode Audio from Browser
 
 
-## A sample demonstrating how to encode the output of Web Audio API nodes.
+A sample demonstrating how to encode the output of Web Audio API nodes.
 
 
-# Compatibility - Browser
+### Compatibility - Browser
 * Chrome 32+
 * Others?
 
-# Codecs
+### Codecs
 * MP3: 22.050Hz && 128Kbps using the ported liblame
 * Ogg-Vorbis: @TODO
 * Spx: @TODO
 * Flac: @TODO
 
-#Author
+##Author
 
 Wellington Soares well.cco@gmail.com
 
 
-#Thanks
+##Thanks
 The code is based on the following implementations: 
 
-https://github.com/nusofthq/Recordmp3js 
-https://github.com/akrennmair/speech-to-server
-https://github.com/remusnegrota/Recorderjs
++ https://github.com/nusofthq/Recordmp3js 
++ https://github.com/akrennmair/speech-to-server
++ https://github.com/remusnegrota/Recorderjs
 
-#Contribution
+##Contribution
 
 Any contribution will be welcome!
 
-#License
+##License
 
 The MIT License (MIT)
 
