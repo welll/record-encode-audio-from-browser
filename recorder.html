@@ -113,15 +113,12 @@
 
   window.onload = function init() {
 
-    try {
+    //try {
 
-      // webkit shim
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      // webkit shim.
+      window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
-      navigator.getUserMedia = (navigator.getUserMedia ||
-                                navigator.webkitGetUserMedia ||
-                                navigator.mozGetUserMedia || 
-                                navigator.msGetUserMedia);
+      navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 
       window.URL = window.URL || window.webkitURL;
       
@@ -130,11 +127,11 @@
       logHTML('Audio context set up.');
       logHTML('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
 
-    } catch (e) {
+    //} catch (e) {
 
-      alert('No web audio support in this browser!');
+    //  alert('No web audio support in this browser!');
 
-    }
+    //}
 
     
     navigator.getUserMedia({vide:false, audio: true}, handlerStartUserMedia, handlerErrorUserMedia);

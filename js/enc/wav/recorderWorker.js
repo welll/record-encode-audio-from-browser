@@ -28,7 +28,7 @@ function init(config) {
 
 function record(inputBuffer) {
 
-  console.log('inputBuffer.length:' + inputBuffer.length);
+  //console.log('inputBuffer.length:' + inputBuffer.length);
   recBuffers.push(inputBuffer);
   recLength += inputBuffer.length;
 
@@ -36,8 +36,8 @@ function record(inputBuffer) {
 
 function sendWAVFile() {
 
-  console.log('recBuffers.length:' + recBuffers.length);
-  console.log('recLength:' + recLength);
+  //console.log('recBuffers.length:' + recBuffers.length);
+  //console.log('recLength:' + recLength);
 
   var buffer = mergeBuffers(recBuffers, recLength);
   var dataview = encodeWAV(buffer);

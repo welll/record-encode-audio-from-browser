@@ -64,7 +64,7 @@ function encode(e) {
 		buf: mp3data.data
 	});
 
-	console.log(mp3data.data.toString('hex'));
+	///console.log(mp3data.data.toString('hex'));
 
 	recBuffers.push(mp3data.data);
 	recLength += mp3data.data.length;
@@ -73,8 +73,8 @@ function encode(e) {
 
 function finish() {
 
-	console.log('recBuffers.length:' + recBuffers.length);
-	console.log('recLength:' + recLength);
+	//console.log('recBuffers.length:' + recBuffers.length);
+	//console.log('recLength:' + recLength);
 
 	var mp3data = Lame.encode_flush(mp3codec);
 
