@@ -149,10 +149,10 @@
       li.appendChild(hf);
       recordingslist.appendChild(li);
 
-      // Upload file to server
-	  uploadAudio(blob);
-      console.log("File uploaded");
-      log.innerHTML += "\n" + "File uploaded";
+      // Upload file to server - uncomment below
+	  // uploadAudio(blob);
+      // console.log("File uploaded");
+      // log.innerHTML += "\n" + "File uploaded";
 
     }
 
