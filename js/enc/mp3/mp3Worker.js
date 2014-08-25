@@ -103,7 +103,9 @@ function finish() {
 	mp3codec = null;
 
 	recBuffers = [];
-	recLength = {};
+	// set to 0 on clear
+//	recLength = {};
+	recLength = 0
 }
 
 function mergeBuffers(recBuffers, recLength) {
