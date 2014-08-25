@@ -111,8 +111,9 @@
         case 'mp3':
           var buf = e.data.buf;
           endFile(buf, 'mp3');
-          encoderMp3Worker.terminate();
-          encoderMp3Worker = null;
+		  // Removed the terminate of the worker - terminate does not allow multiple recordings
+          //encoderMp3Worker.terminate();
+          //encoderMp3Worker = null;
           break;
       }
 
