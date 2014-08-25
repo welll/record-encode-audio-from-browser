@@ -149,12 +149,36 @@
       li.appendChild(hf);
       recordingslist.appendChild(li);
 
+      // Upload file to server
+	  uploadAudio(blob);
+      console.log("File uploaded");
+      log.innerHTML += "\n" + "File uploaded";
 
     }
 
 
   };
-
+	function uploadAudio(mp3Data){
+		var reader = new FileReader();
+		reader.onload = function(event){
+			var fd = new FormData();
+			var mp3Name = encodeURIComponent('audio_recording_' + new Date().getTime() + '.mp3');
+			console.log("mp3name = " + mp3Name);
+			fd.append('fname', mp3Name);
+			fd.append('data', event.target.result);
+			$.ajax({
+				type: 'POST',
+				url: 'upload.php',
+				data: fd,
+				processData: false,
+				contentType: false
+			}).done(function(data) {
+				console.log('Upload.php');
+			});
+		};      
+		reader.readAsDataURL(mp3Data);
+	}
+	
   window.Recorder = Recorder;
 
 })(window);
