@@ -52,7 +52,7 @@ function sendWAVFile() {
   });
 
   recBuffers = [];
-  recLength = {};
+  recLength = 0;
 }
 
 function writeString(view, offset, string) {
