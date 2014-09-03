@@ -111,8 +111,8 @@
         case 'mp3':
           var buf = e.data.buf;
           endFile(buf, 'mp3');
-          encoderMp3Worker.terminate();
-          encoderMp3Worker = null;
+          //encoderMp3Worker.terminate();
+          //encoderMp3Worker = null;
           break;
       }
 
@@ -146,11 +146,15 @@
       hf.download = new Date().toISOString() + '.' + extension;
       hf.innerHTML = hf.download;
       li.appendChild(hf);
+
+      var au = document.createElement('audio');
+      au.controls = true;
+      au.src = url;
+      li.appendChild(au);
+
       recordingslist.appendChild(li);
 
-
     }
-
 
   };
 
