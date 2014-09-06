@@ -59,10 +59,10 @@ function encode(e) {
 
 	var mp3data = Lame.encode_buffer_ieee_float(mp3codec, e.data.buf, e.data.buf);
 
-	self.postMessage({
-		command: 'data',
-		buf: mp3data.data
-	});
+	//self.postMessage({
+	//	command: 'data',
+	//	buf: mp3data.data
+	//});
 
 	///console.log(mp3data.data.toString('hex'));
 
@@ -103,7 +103,7 @@ function finish() {
 	mp3codec = null;
 
 	recBuffers = [];
-	recLength = {};
+	recLength = 0;
 }
 
 function mergeBuffers(recBuffers, recLength) {
