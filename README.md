@@ -1,6 +1,4 @@
-[![Code Climate](https://codeclimate.com/github/welll/record-encode-audio-from-browser/badges/gpa.svg)](https://codeclimate.com/github/welll/record-encode-audio-from-browser)
-
-[![Test Coverage](https://codeclimate.com/github/welll/record-encode-audio-from-browser/badges/coverage.svg)](https://codeclimate.com/github/welll/record-encode-audio-from-browser)
+[![Code Climate](https://codeclimate.com/github/welll/record-encode-audio-from-browser/badges/gpa.svg)](https://codeclimate.com/github/welll/record-encode-audio-from-browser) [![Test Coverage](https://codeclimate.com/github/welll/record-encode-audio-from-browser/badges/coverage.svg)](https://codeclimate.com/github/welll/record-encode-audio-from-browser)
 
 # Record/Encode Audio from Browser
 
