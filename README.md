@@ -16,7 +16,7 @@ A sample demonstrating how to encode the output of Web Audio API nodes.
 * Spx: @TODO
 * Flac: @TODO
 
-##Author
+## Author
 
 Wellington Soares well.cco@gmail.com
 
@@ -28,11 +28,11 @@ The code is based on the following implementations:
 + https://github.com/akrennmair/speech-to-server
 + https://github.com/remusnegrota/Recorderjs
 
-##Contribution
+## Contribution
 
 Any contribution will be welcome!
 
-##License
+## License
 
 The MIT License (MIT)
 
