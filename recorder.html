@@ -110,7 +110,18 @@
 </head>
 <body>
     <h1>Audio Recorder</h1>
-    <p class="subtitle">Record and encode audio in multiple formats using Web APIs</p>
+    <p class="subtitle">Record and encode audio in multiple formats using Web APIs, with optional steganographic watermarking.</p>
+
+    <details>
+        <summary style="cursor:pointer; color:#0066cc; margin-bottom:1rem;">How does the watermark work?</summary>
+        <p style="color:#555; font-size:0.85rem; line-height:1.5; margin-bottom:1rem; padding:0.75rem; background:#fff; border:1px solid #eee; border-radius:4px;">
+            Metadata is hidden inside WAV files using LSB (Least Significant Bit) steganography.
+            Each character of your message is encoded into the lowest bit of consecutive 16-bit audio samples.
+            The change is imperceptible to the human ear &mdash; each sample shifts by at most &plusmn;1 on a 65,536-level scale (&gt;80&nbsp;dB SNR).
+            The embedded data includes a magic header and checksum for reliable extraction.
+            One second of audio can hold ~5.5&nbsp;KB of hidden text. To extract a watermark, drop a WAV file in the section below.
+        </p>
+    </details>
 
     <div class="formats">
         <label><input type="checkbox" id="fmt-wav" checked> WAV</label>
