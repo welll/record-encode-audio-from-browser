@@ -34,7 +34,7 @@ function init(config) {
 	Lame.set_mode(mp3codec, config.mode || Lame.JOINT_STEREO);
 	Lame.set_num_channels(mp3codec, config.channels || 2);
 	Lame.set_out_samplerate(mp3codec, config.samplerate || 44100);
-	Lame.set_in_samplerate(mp3codec, config.in_samplerate || 44100);
+	Lame.set_in_samplerate(mp3codec, config.insamplerate || 44100);
 	/*The default is a  J-Stereo, 44.1khz, 128kbps CBR mp3 file at quality 5.*/
 	Lame.set_bitrate(mp3codec, config.bitrate || 128);
 

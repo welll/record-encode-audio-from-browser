@@ -1,189 +1,268 @@
-(function(window) {
+(function () {
+  'use strict';
 
-  var recordWavWorker = new Worker('js/enc/wav/recorderWorker.js');
-  var encoderMp3Worker = new Worker('js/enc/mp3/mp3Worker.js');
+  const $ = (sel) => document.querySelector(sel);
+  const logEl = $('#log');
+  const recordingsEl = $('#recordings');
+  const btnRecord = $('#btn-record');
+  const btnStop = $('#btn-stop');
+  const metadataInput = $('#metadata');
+  const extractZone = $('#extract-zone');
+  const extractInput = $('#extract-input');
+  const extractResult = $('#extract-result');
 
-  var Recorder = function(source) {
+  function log(msg) {
+    logEl.textContent += msg + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+  }
 
-    var bufferLen = 4096;
-    var recording = false;
+  class AudioRecorder {
+    #audioContext = null;
+    #stream = null;
+    #sourceNode = null;
+    #processorNode = null;
+    #recording = false;
+    #wavWorker = null;
+    #mp3Worker = null;
+    #mediaRecorder = null;
+    #oggChunks = [];
+    #activeFormats = {};
 
-    this.context = source.context;
-
-    /*
-      ScriptProcessorNode createScriptProcessor (optional unsigned long bufferSize = 0,
-       optional unsigned long numberOfInputChannels = 2, optional unsigned long numberOfOutputChannels = 2 );
-    */
-
-    this.node = (this.context.createScriptProcessor || this.context.createJavaScriptNode).call(this.context, bufferLen, 1, 1);
-    this.node.connect(this.context.destination); //this should not be necessary
-
-    this.node.onaudioprocess = function(e) {
-
-      if (!recording)
-        return;
-
-      var channelLeft = e.inputBuffer.getChannelData(0);
-
-      console.log('onAudioProcess' + channelLeft.length);
-
-      encoderMp3Worker.postMessage({
-        command: 'encode',
-        buf: channelLeft
-      });
-
-      recordWavWorker.postMessage({
-        command: 'record',
-        buffer: channelLeft
-      });
-
+    get initialized() {
+      return this.#audioContext !== null;
     }
 
-    source.connect(this.node);
+    async init() {
+      this.#stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.#audioContext = new AudioContext();
 
-    this.record = function() {
-
-      if (recording)
-        return false;
-
-      recording = true;
-
-      var sampleRate = this.context.sampleRate;
-
-      console.log("Initializing WAV");
-      log.innerHTML += "\n" + "Creating Empty WAV";
-
-      recordWavWorker.postMessage({
-        command: 'init',
-        config: {
-          sampleRate: sampleRate
-        }
-      });
-
-      console.log("Initializing to Mp3");
-      log.innerHTML += "\n" + "Creating Empty Mp3:" + sampleRate;
-
-      encoderMp3Worker.postMessage({
-        command: 'init',
-        config: {
-          channels: 1,
-          mode: 3 /* means MONO*/ ,
-          samplerate: 22050,
-          bitrate: 64,
-          insamplerate: sampleRate
-        }
-      });
-
-    }
-
-    this.stop = function() {
-
-      if (!recording)
-        return;
-
-      recordWavWorker.postMessage({
-        command: 'finish'
-      });
-
-      encoderMp3Worker.postMessage({
-        command: 'finish'
-      });
-
-      recording = false;
-
-    }
-
-    encoderMp3Worker.onmessage = function(e) {
-
-      var command = e.data.command;
-
-      console.log('encoderMp3Worker - onmessage: ' + command);
-
-      switch (command) {
-        case 'data':
-          var buf = e.data.buf;
-          console.log('Receiving data from mp3-Encoder');
-
-          //maybe you want to send to websocket channel, as:
-          //https://github.com/akrennmair/speech-to-server
-
-          break;
-        case 'mp3':
-          var buf = e.data.buf;
-          endFile(buf, 'mp3');
-          // Removed the terminate of the worker - terminate does not allow multiple recordings
-          //encoderMp3Worker.terminate();
-          //encoderMp3Worker = null;
-          break;
+      if (this.#audioContext.state === 'suspended') {
+        await this.#audioContext.resume();
       }
 
-    };
+      this.#sourceNode = this.#audioContext.createMediaStreamSource(this.#stream);
+      this.#processorNode = this.#audioContext.createScriptProcessor(4096, 1, 1);
+      this.#processorNode.onaudioprocess = (e) => this.#onAudioProcess(e);
 
-    recordWavWorker.onmessage = function(e) {
+      this.#sourceNode.connect(this.#processorNode);
+      this.#processorNode.connect(this.#audioContext.destination);
 
-      var command = e.data.command;
-
-      console.log('recordWavWorker - onmessage: ' + command);
-
-      switch (command) {
-        case 'wav':
-          endFile(e.data.buf, 'wav');
-          break;
-      }
-
-    };
-
-    function endFile(blob, extension) {
-
-      console.log("Done converting to " + extension);
-      log.innerHTML += "\n" + "Done converting to " + extension;
-
-      console.log("the blob " + blob + " " + blob.size + " " + blob.type);
-
-      var url = URL.createObjectURL(blob);
-      var li = document.createElement('li');
-      var hf = document.createElement('a');
-      hf.href = url;
-      hf.download = new Date().toISOString() + '.' + extension;
-      hf.innerHTML = hf.download;
-      li.appendChild(hf);
-
-      var au = document.createElement('audio');
-      au.controls = true;
-      au.src = url;
-      li.appendChild(au);
-
-      // Upload file to server - uncomment below
-      // uploadAudio(blob);
-      // console.log("File uploaded");
-      // log.innerHTML += "\n" + "File uploaded";
-
-      recordingslist.appendChild(li);
-
+      log(`Audio context ready (${this.#audioContext.sampleRate} Hz)`);
     }
 
-  };
-	function uploadAudio(mp3Data){
-		var reader = new FileReader();
-		reader.onload = function(event){
-			var fd = new FormData();
-			var mp3Name = encodeURIComponent('audio_recording_' + new Date().getTime() + '.mp3');
-			console.log("mp3name = " + mp3Name);
-			fd.append('fname', mp3Name);
-			fd.append('data', event.target.result);
-			$.ajax({
-				type: 'POST',
-				url: 'upload.php',
-				data: fd,
-				processData: false,
-				contentType: false
-			}).done(function(data) {
-				console.log('Upload.php');
-			});
-		};      
-		reader.readAsDataURL(mp3Data);
-	}
-	
-  window.Recorder = Recorder;
+    start(formats, metadata) {
+      if (this.#recording) return;
+      this.#recording = true;
+      this.#activeFormats = { ...formats };
 
-})(window);
+      const sampleRate = this.#audioContext.sampleRate;
+
+      if (formats.wav) {
+        if (!this.#wavWorker) {
+          this.#wavWorker = new Worker('js/enc/wav/wavWorker.js');
+          this.#wavWorker.onmessage = (e) => {
+            if (e.data.command === 'wav') this.#onEncoded(e.data.buf, 'wav');
+          };
+        }
+        this.#wavWorker.postMessage({
+          command: 'init',
+          config: { sampleRate, metadata: metadata || null }
+        });
+        log('WAV encoder ready' + (metadata ? ' (watermark enabled)' : ''));
+      }
+
+      if (formats.mp3) {
+        if (!this.#mp3Worker) {
+          this.#mp3Worker = new Worker('js/enc/mp3/mp3Worker.js');
+          this.#mp3Worker.onmessage = (e) => {
+            if (e.data.command === 'mp3') this.#onEncoded(e.data.buf, 'mp3');
+          };
+        }
+        this.#mp3Worker.postMessage({
+          command: 'init',
+          config: {
+            channels: 1,
+            mode: 3,
+            samplerate: 22050,
+            bitrate: 128,
+            insamplerate: sampleRate
+          }
+        });
+        log('MP3 encoder ready (128 kbps)');
+      }
+
+      if (formats.ogg) {
+        this.#startOggRecorder();
+      }
+
+      log('Recording...');
+    }
+
+    stop() {
+      if (!this.#recording) return;
+      this.#recording = false;
+
+      if (this.#activeFormats.wav && this.#wavWorker) {
+        this.#wavWorker.postMessage({ command: 'finish' });
+      }
+      if (this.#activeFormats.mp3 && this.#mp3Worker) {
+        this.#mp3Worker.postMessage({ command: 'finish' });
+      }
+      if (this.#mediaRecorder?.state === 'recording') {
+        this.#mediaRecorder.stop();
+      }
+
+      log('Stopped');
+    }
+
+    #onAudioProcess(e) {
+      if (!this.#recording) return;
+      const samples = e.inputBuffer.getChannelData(0);
+
+      if (this.#activeFormats.wav && this.#wavWorker) {
+        this.#wavWorker.postMessage({ command: 'record', buffer: samples });
+      }
+      if (this.#activeFormats.mp3 && this.#mp3Worker) {
+        this.#mp3Worker.postMessage({ command: 'encode', buf: samples });
+      }
+    }
+
+    #startOggRecorder() {
+      const types = [
+        'audio/ogg; codecs=vorbis',
+        'audio/ogg; codecs=opus',
+        'audio/ogg',
+        'audio/webm; codecs=opus',
+        'audio/webm'
+      ];
+
+      const mimeType = types.find((t) => MediaRecorder.isTypeSupported(t));
+      if (!mimeType) {
+        log('OGG: not supported in this browser');
+        return;
+      }
+
+      this.#oggChunks = [];
+      this.#mediaRecorder = new MediaRecorder(this.#stream, { mimeType });
+
+      this.#mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) this.#oggChunks.push(e.data);
+      };
+
+      this.#mediaRecorder.onstop = () => {
+        const ext = mimeType.startsWith('audio/ogg') ? 'ogg' : 'webm';
+        const blob = new Blob(this.#oggChunks, { type: mimeType });
+        this.#onEncoded(blob, ext);
+        this.#oggChunks = [];
+      };
+
+      this.#mediaRecorder.start();
+      log(`OGG encoder ready (${mimeType})`);
+    }
+
+    #onEncoded(blob, ext) {
+      log(`${ext.toUpperCase()} encoded (${(blob.size / 1024).toFixed(1)} KB)`);
+
+      const url = URL.createObjectURL(blob);
+      const li = document.createElement('li');
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recording-${Date.now()}.${ext}`;
+      a.textContent = a.download;
+      li.appendChild(a);
+
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      audio.src = url;
+      li.appendChild(audio);
+
+      recordingsEl.appendChild(li);
+    }
+  }
+
+  // --- Recording UI ---
+
+  const recorder = new AudioRecorder();
+
+  btnRecord.addEventListener('click', async () => {
+    try {
+      if (!recorder.initialized) {
+        await recorder.init();
+      }
+
+      const formats = {
+        wav: $('#fmt-wav').checked,
+        mp3: $('#fmt-mp3').checked,
+        ogg: $('#fmt-ogg').checked
+      };
+
+      if (!formats.wav && !formats.mp3 && !formats.ogg) {
+        log('Select at least one format');
+        return;
+      }
+
+      const metadata = metadataInput.value.trim();
+      recorder.start(formats, metadata);
+      btnRecord.disabled = true;
+      btnRecord.classList.add('recording');
+      btnStop.disabled = false;
+    } catch (err) {
+      log('Error: ' + err.message);
+    }
+  });
+
+  btnStop.addEventListener('click', () => {
+    recorder.stop();
+    btnRecord.disabled = false;
+    btnRecord.classList.remove('recording');
+    btnStop.disabled = true;
+  });
+
+  // --- Watermark Extraction UI ---
+
+  extractZone.addEventListener('click', () => extractInput.click());
+
+  extractZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    extractZone.classList.add('dragover');
+  });
+
+  extractZone.addEventListener('dragleave', () => {
+    extractZone.classList.remove('dragover');
+  });
+
+  extractZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    extractZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) extractWatermark(file);
+  });
+
+  extractInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) extractWatermark(file);
+  });
+
+  async function extractWatermark(file) {
+    if (!file.name.toLowerCase().endsWith('.wav')) {
+      extractResult.textContent = 'Only WAV files are supported.';
+      return;
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const metadata = Stego.extractFromWav(arrayBuffer);
+
+      if (metadata) {
+        extractResult.textContent = 'Watermark found: ' + metadata;
+      } else {
+        extractResult.textContent = 'No watermark detected.';
+      }
+    } catch (err) {
+      extractResult.textContent = 'Error reading file: ' + err.message;
+    }
+  }
+
+  log('Ready. Click Record to begin.');
+})();
