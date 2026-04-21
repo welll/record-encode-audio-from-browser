@@ -1,15 +1,11 @@
-importScripts('../../stego.js');
-
 let recLength = 0;
 let recBuffers = [];
 let sampleRate;
-let metadata;
 
 self.onmessage = function (e) {
   switch (e.data.command) {
     case 'init':
       sampleRate = e.data.config.sampleRate;
-      metadata = e.data.config.metadata || null;
       recBuffers = [];
       recLength = 0;
       break;
@@ -26,15 +22,6 @@ self.onmessage = function (e) {
 function sendWAV() {
   const floats = mergeBuffers(recBuffers, recLength);
   const pcm = floatToInt16(floats);
-
-  if (metadata) {
-    try {
-      Stego.embed(pcm, metadata);
-    } catch (err) {
-      // audio too short for metadata — encode without it
-    }
-  }
-
   const view = encodeWAV(pcm);
   const blob = new Blob([view], { type: 'audio/wav' });
 

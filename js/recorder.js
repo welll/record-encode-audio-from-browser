@@ -6,10 +6,6 @@
   const recordingsEl = $('#recordings');
   const btnRecord = $('#btn-record');
   const btnStop = $('#btn-stop');
-  const metadataInput = $('#metadata');
-  const extractZone = $('#extract-zone');
-  const extractInput = $('#extract-input');
-  const extractResult = $('#extract-result');
 
   function log(msg) {
     logEl.textContent += msg + '\n';
@@ -50,7 +46,7 @@
       log(`Audio context ready (${this.#audioContext.sampleRate} Hz)`);
     }
 
-    start(formats, metadata) {
+    start(formats) {
       if (this.#recording) return;
       this.#recording = true;
       this.#activeFormats = { ...formats };
@@ -64,11 +60,8 @@
             if (e.data.command === 'wav') this.#onEncoded(e.data.buf, 'wav');
           };
         }
-        this.#wavWorker.postMessage({
-          command: 'init',
-          config: { sampleRate, metadata: metadata || null }
-        });
-        log('WAV encoder ready' + (metadata ? ' (watermark enabled)' : ''));
+        this.#wavWorker.postMessage({ command: 'init', config: { sampleRate } });
+        log('WAV encoder ready');
       }
 
       if (formats.mp3) {
@@ -181,8 +174,6 @@
     }
   }
 
-  // --- Recording UI ---
-
   const recorder = new AudioRecorder();
 
   btnRecord.addEventListener('click', async () => {
@@ -202,8 +193,7 @@
         return;
       }
 
-      const metadata = metadataInput.value.trim();
-      recorder.start(formats, metadata);
+      recorder.start(formats);
       btnRecord.disabled = true;
       btnRecord.classList.add('recording');
       btnStop.disabled = false;
@@ -219,59 +209,6 @@
     btnStop.disabled = true;
     log('Refresh the page to record again.');
   });
-
-  // --- Watermark Extraction UI ---
-
-  function onExtractClick() { extractInput.click(); }
-  function onDragOver(e) { e.preventDefault(); extractZone.classList.add('dragover'); }
-  function onDragLeave() { extractZone.classList.remove('dragover'); }
-  function onDrop(e) {
-    e.preventDefault();
-    extractZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) extractWatermark(file);
-  }
-
-  extractZone.addEventListener('click', onExtractClick);
-  extractZone.addEventListener('dragover', onDragOver);
-  extractZone.addEventListener('dragleave', onDragLeave);
-  extractZone.addEventListener('drop', onDrop);
-  extractInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) extractWatermark(file);
-  });
-
-  function disableExtractZone() {
-    extractZone.removeEventListener('click', onExtractClick);
-    extractZone.removeEventListener('dragover', onDragOver);
-    extractZone.removeEventListener('drop', onDrop);
-    extractInput.disabled = true;
-    extractZone.style.opacity = '0.5';
-    extractZone.style.cursor = 'not-allowed';
-    extractZone.style.borderColor = '#ddd';
-  }
-
-  async function extractWatermark(file) {
-    if (!file.name.toLowerCase().endsWith('.wav')) {
-      extractResult.textContent = 'Only WAV files are supported.';
-      return;
-    }
-
-    disableExtractZone();
-
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const metadata = Stego.extractFromWav(arrayBuffer);
-
-      if (metadata) {
-        extractResult.textContent = 'Watermark found: ' + metadata;
-      } else {
-        extractResult.textContent = 'No watermark detected.';
-      }
-    } catch (err) {
-      extractResult.textContent = 'Error reading file: ' + err.message;
-    }
-  }
 
   log('Ready. Click Record to begin.');
 })();

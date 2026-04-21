@@ -5,7 +5,6 @@ const vm = require('node:vm');
 const ROOT = join(__dirname, '..');
 
 function createWavWorkerSandbox() {
-  const Stego = require(join(ROOT, 'js/stego'));
   const workerCode = readFileSync(join(ROOT, 'js/enc/wav/wavWorker.js'), 'utf-8');
   const messages = [];
 
@@ -15,8 +14,6 @@ function createWavWorkerSandbox() {
         messages.push(structuredClone(data));
       }
     },
-    importScripts() {},
-    Stego,
     Float32Array,
     DataView,
     ArrayBuffer,
@@ -24,8 +21,6 @@ function createWavWorkerSandbox() {
     Int16Array,
     Uint8Array,
     Math,
-    TextEncoder,
-    TextDecoder,
     console,
   };
 

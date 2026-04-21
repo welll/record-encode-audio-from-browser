@@ -43,16 +43,6 @@
         button:hover:not(:disabled) { background: #f0f0f0; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         button.recording { background: #fee; border-color: #c44; color: #c44; }
-        .metadata-group { margin-bottom: 1rem; }
-        .metadata-group label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.25rem; }
-        .metadata-group input {
-            width: 100%;
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .metadata-group small { color: #999; font-size: 0.75rem; }
         #recordings { list-style: none; }
         #recordings li {
             padding: 0.75rem;
@@ -81,57 +71,16 @@
             overflow-y: auto;
             white-space: pre-wrap;
         }
-        .extract-zone {
-            border: 2px dashed #ccc;
-            border-radius: 4px;
-            padding: 1.5rem;
-            text-align: center;
-            color: #999;
-            cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
-            margin-bottom: 0.5rem;
-        }
-        .extract-zone:hover, .extract-zone.dragover {
-            border-color: #0066cc;
-            background: #f0f7ff;
-        }
-        .extract-zone input { display: none; }
-        #extract-result {
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            padding: 0.75rem;
-            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            min-height: 1.5em;
-        }
     </style>
 </head>
 <body>
     <h1>Audio Recorder</h1>
-    <p class="subtitle">Record and encode audio in multiple formats using Web APIs, with optional steganographic watermarking.</p>
-
-    <details>
-        <summary style="cursor:pointer; color:#0066cc; margin-bottom:1rem;">How does the watermark work?</summary>
-        <p style="color:#555; font-size:0.85rem; line-height:1.5; margin-bottom:1rem; padding:0.75rem; background:#fff; border:1px solid #eee; border-radius:4px;">
-            Metadata is hidden inside WAV files using LSB (Least Significant Bit) steganography.
-            Each character of your message is encoded into the lowest bit of consecutive 16-bit audio samples.
-            The change is imperceptible to the human ear &mdash; each sample shifts by at most &plusmn;1 on a 65,536-level scale (&gt;80&nbsp;dB SNR).
-            The embedded data includes a magic header and checksum for reliable extraction.
-            One second of audio can hold ~5.5&nbsp;KB of hidden text. To extract a watermark, drop a WAV file in the section below.
-        </p>
-    </details>
+    <p class="subtitle">Record and encode audio in multiple formats using Web APIs</p>
 
     <div class="formats">
         <label><input type="checkbox" id="fmt-wav" checked> WAV</label>
         <label><input type="checkbox" id="fmt-mp3" checked> MP3</label>
         <label><input type="checkbox" id="fmt-ogg" checked> OGG</label>
-    </div>
-
-    <div class="metadata-group">
-        <label for="metadata">Watermark metadata <small>(embedded in WAV via LSB steganography)</small></label>
-        <input type="text" id="metadata" placeholder="e.g. author, copyright, notes...">
     </div>
 
     <div class="controls">
@@ -142,17 +91,9 @@
     <h2>Recordings</h2>
     <ul id="recordings"></ul>
 
-    <h2>Extract Watermark</h2>
-    <div class="extract-zone" id="extract-zone">
-        Drop a WAV file here or click to select
-        <input type="file" id="extract-input" accept=".wav">
-    </div>
-    <pre id="extract-result"></pre>
-
     <h2>Log</h2>
     <pre id="log"></pre>
 
-    <script src="js/stego.js"></script>
     <script src="js/recorder.js"></script>
 </body>
 </html>
