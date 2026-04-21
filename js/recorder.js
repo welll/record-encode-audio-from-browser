@@ -214,41 +214,50 @@
 
   btnStop.addEventListener('click', () => {
     recorder.stop();
-    btnRecord.disabled = false;
+    btnRecord.disabled = true;
     btnRecord.classList.remove('recording');
     btnStop.disabled = true;
+    log('Refresh the page to record again.');
   });
 
   // --- Watermark Extraction UI ---
 
-  extractZone.addEventListener('click', () => extractInput.click());
-
-  extractZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    extractZone.classList.add('dragover');
-  });
-
-  extractZone.addEventListener('dragleave', () => {
-    extractZone.classList.remove('dragover');
-  });
-
-  extractZone.addEventListener('drop', (e) => {
+  function onExtractClick() { extractInput.click(); }
+  function onDragOver(e) { e.preventDefault(); extractZone.classList.add('dragover'); }
+  function onDragLeave() { extractZone.classList.remove('dragover'); }
+  function onDrop(e) {
     e.preventDefault();
     extractZone.classList.remove('dragover');
     const file = e.dataTransfer.files[0];
     if (file) extractWatermark(file);
-  });
+  }
 
+  extractZone.addEventListener('click', onExtractClick);
+  extractZone.addEventListener('dragover', onDragOver);
+  extractZone.addEventListener('dragleave', onDragLeave);
+  extractZone.addEventListener('drop', onDrop);
   extractInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) extractWatermark(file);
   });
+
+  function disableExtractZone() {
+    extractZone.removeEventListener('click', onExtractClick);
+    extractZone.removeEventListener('dragover', onDragOver);
+    extractZone.removeEventListener('drop', onDrop);
+    extractInput.disabled = true;
+    extractZone.style.opacity = '0.5';
+    extractZone.style.cursor = 'not-allowed';
+    extractZone.style.borderColor = '#ddd';
+  }
 
   async function extractWatermark(file) {
     if (!file.name.toLowerCase().endsWith('.wav')) {
       extractResult.textContent = 'Only WAV files are supported.';
       return;
     }
+
+    disableExtractZone();
 
     try {
       const arrayBuffer = await file.arrayBuffer();
