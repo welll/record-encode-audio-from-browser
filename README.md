@@ -16,6 +16,10 @@ https://welll.github.io/record-encode-audio-from-browser/
 - **MP3** - 22.050 Hz, 128 kbps via ported libmp3lame (Web Worker)
 - **OGG** - Vorbis/Opus via the MediaRecorder API (browser-native)
 
+### Steganographic Watermarking
+
+WAV recordings can embed hidden metadata using LSB (Least Significant Bit) steganography. Type any text into the watermark field before recording — it gets encoded into the least significant bits of the 16-bit PCM samples, making the change imperceptible to the human ear (max ±1 per sample, >80 dB SNR). You can also extract watermarks from existing WAV files using the drag-and-drop zone.
+
 ### How It Works
 
 WAV and MP3 encoding run in Web Workers using `ScriptProcessorNode` to capture PCM samples from the Web Audio API. OGG encoding uses the browser's native `MediaRecorder` API, which selects the best available codec (`audio/ogg; codecs=vorbis` preferred, with Opus and WebM fallbacks).
@@ -38,10 +42,11 @@ Tests run in Node.js (v18+) with zero dependencies, using the built-in `node:tes
 npm test
 ```
 
-The suite includes 144 tests covering:
+The suite includes 207 tests covering:
 - **WAV encoding** — RIFF/fmt/data header structure, PCM float-to-int16 conversion, clipping, sample rates, multi-chunk merging, edge cases
 - **WAV worker protocol** — message format, Blob output, multiple recording cycles, data isolation
 - **MP3 worker** — Lame initialization, config forwarding, defaults, encode/finish lifecycle
+- **Steganography** — round-trip (ASCII, Unicode, JSON, emoji), checksum integrity, imperceptibility, SNR, capacity limits, worker integration
 - **Audio utilities** — signal generators, WAV round-trip integrity, quantization error verification
 
 ## Author
