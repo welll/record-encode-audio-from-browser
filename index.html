@@ -1,132 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Record/Encode Audio</title>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> 
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> 
-  <style type='text/css'>
-    body{ padding: 15px; margin: 15px;}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record/Encode Audio</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            background: #fafafa;
+            color: #333;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .subtitle { color: #666; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        .formats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .formats label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .controls { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        button {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        button:hover:not(:disabled) { background: #f0f0f0; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.recording { background: #fee; border-color: #c44; color: #c44; }
+        #recordings { list-style: none; }
+        #recordings li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        #recordings a {
+            color: #0066cc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        #recordings a:hover { text-decoration: underline; }
+        #recordings audio { width: 100%; }
+        #log {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
-  <h1>Record/Encode Audio on Browser using the WebAudio API and "ported" libraries.</h1>
-  <p>
-      August 17, 2014: Version 0.0.1
-  </p>
+    <h1>Audio Recorder</h1>
+    <p class="subtitle">Record and encode audio in multiple formats using Web APIs</p>
 
-  <h2>Platforms and Browsers</h2>
-  <ul>
-    <li>Chrome 32+</li>
-  </ul>
+    <div class="formats">
+        <label><input type="checkbox" id="fmt-wav" checked> WAV</label>
+        <label><input type="checkbox" id="fmt-mp3" checked> MP3</label>
+        <label><input type="checkbox" id="fmt-ogg" checked> OGG</label>
+    </div>
 
-  <h2>Codecs</h2>
-  <ul>
-    <li> MP3: 22.050Hz && 128Kbps using the ported liblame</li>
-    <li> Ogg-Vorbis: @TODO</li>
-    <li> Spx: @TODO</li>
-    <li> Flac: @TODO</li>
-  </ul>
+    <div class="controls">
+        <button id="btn-record">Record</button>
+        <button id="btn-stop" disabled>Stop</button>
+    </div>
 
-  <button  class="btn btn-default" onclick="startRecording(this);">Record</button>
-  <button   class="btn btn-default"  onclick="stopRecording(this);" disabled>Stop</button>
-  
-  <h2>
-    Recordings
-  </h2>
-  
-  <ul id="recordingslist">
-  </ul>
-  
-  <h2>Log</h2>
-  <pre id="log">
-  </pre>
+    <h2>Recordings</h2>
+    <ul id="recordings"></ul>
 
-  <script>
-    function logHTML(e, data) {
-      log.innerHTML += "\n" + e + " " + (data || '');
-    }
+    <h2>Log</h2>
+    <pre id="log"></pre>
 
-    var audioContext;
-    var audioRecorder;
-    var _realAudioInput;
-
-    function handlerStartUserMedia(stream) {
-      console.log('handlerStartUserMedia');
-      console.log('sampleRate:'+ audioContext.sampleRate);
-      // MEDIA STREAM SOURCE -> ZERO GAIN >
-      _realAudioInput = audioContext.createMediaStreamSource(stream);
-      audioRecorder = new Recorder(_realAudioInput);
-    }
-
-    function handlerErrorUserMedia(e) {
-        logHTML('No live audio input: ' + e);
-    }
-
-    function startRecording(button) {
-
-      if(!audioRecorder){
-        return;
-      }
-      audioRecorder && audioRecorder.record();
-
-      //GUI
-      button.disabled = true;
-      button.nextElementSibling.disabled = false;
-      logHTML('Recording...');
-    }
-
-    function stopRecording(button) {
-      if(!audioRecorder){
-        return;
-      }
-
-      audioRecorder.stop();
-
-      //GUI
-      button.disabled = true;
-      button.previousElementSibling.disabled = false;
-      logHTML('Stopped recording.');
-    }
-
-    window.onload = function init() {
-
-      // webkit shim.
-      window.AudioContext = (
-        window.AudioContext || 
-        window.webkitAudioContext || 
-        window.mozAudioContext
-      );
-
-      navigator.getUserMedia = ( 
-        navigator.getUserMedia ||
-        navigator.webkitGetUserMedia ||
-        navigator.mozGetUserMedia ||
-        navigator.msGetUserMedia
-      );
-
-      window.URL = window.URL || window.webkitURL;
-      audioContext = new AudioContext;
-
-      logHTML('Audio context set up.');
-      logHTML('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
-
-
-      if (typeof navigator.mediaDevices.getUserMedia === 'undefined') {
-        navigator.getUserMedia({
-          vide:false,
-          audio: true
-        }, handlerStartUserMedia, handlerErrorUserMedia);
-      } else {
-        navigator.mediaDevices.getUserMedia({
-          audio: true
-        }).then(handlerStartUserMedia).catch(handlerErrorUserMedia);
-      }
-
-    };
-  </script>
-  <script src="js/vendor/jquery-1.11.0.min.js"></script>  
-  <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-  <script src="js/recorder.js"></script>
+    <script src="js/recorder.js"></script>
 </body>
 </html>
