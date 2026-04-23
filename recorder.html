@@ -17,19 +17,6 @@
         h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
         .subtitle { color: #666; margin-bottom: 1.5rem; }
         h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
-        .formats {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        .formats label {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            cursor: pointer;
-            user-select: none;
-        }
         .controls { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
         button {
             padding: 0.5rem 1.5rem;
@@ -76,12 +63,6 @@
 <body>
     <h1>Audio Recorder</h1>
     <p class="subtitle">Record and encode audio in multiple formats using Web APIs</p>
-
-    <div class="formats">
-        <label><input type="checkbox" id="fmt-wav" checked> WAV</label>
-        <label><input type="checkbox" id="fmt-mp3" checked> MP3</label>
-        <label><input type="checkbox" id="fmt-ogg" checked> OGG</label>
-    </div>
 
     <div class="controls">
         <button id="btn-record">Record</button>

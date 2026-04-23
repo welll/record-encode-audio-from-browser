@@ -4,19 +4,15 @@ export class OggEncoder {
   #resolve = null;
   #mimeType = null;
 
-  get supported() {
-    return this.#mimeType !== null;
+  get name() {
+    return 'ogg';
   }
 
-  get mimeType() {
-    return this.#mimeType;
-  }
-
-  get extension() {
+  get #extension() {
     return this.#mimeType?.startsWith('audio/ogg') ? 'ogg' : 'webm';
   }
 
-  init(stream) {
+  init({ stream }) {
     const types = [
       'audio/ogg; codecs=vorbis',
       'audio/ogg; codecs=opus',
@@ -26,7 +22,9 @@ export class OggEncoder {
     ];
 
     this.#mimeType = types.find((t) => MediaRecorder.isTypeSupported(t));
-    if (!this.#mimeType) return false;
+    if (!this.#mimeType) {
+      return { ready: false, message: 'OGG: not supported in this browser' };
+    }
 
     this.#chunks = [];
     this.#mediaRecorder = new MediaRecorder(stream, { mimeType: this.#mimeType });
@@ -34,8 +32,10 @@ export class OggEncoder {
     this.#mediaRecorder.onstop = this.#handleStop.bind(this);
 
     this.#mediaRecorder.start();
-    return true;
+    return { ready: true, message: `OGG encoder ready (${this.#mimeType})` };
   }
+
+  feed() {}
 
   finish() {
     return new Promise((resolve) => {
@@ -61,7 +61,7 @@ export class OggEncoder {
     const blob = new Blob(this.#chunks, { type: this.#mimeType });
     this.#chunks = [];
     if (this.#resolve) {
-      this.#resolve(blob);
+      this.#resolve({ blob, ext: this.#extension });
       this.#resolve = null;
     }
   }

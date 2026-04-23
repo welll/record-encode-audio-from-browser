@@ -1,17 +1,16 @@
+import { NoiseReducer } from './noise-reducer.js';
+import { WavEncoder } from './enc/wav-encoder.js';
+import { Mp3Encoder } from './enc/mp3-encoder.js';
+import { OggEncoder } from './enc/ogg-encoder.js';
+
 export class AudioCapture {
   #audioContext = null;
   #stream = null;
   #sourceNode = null;
   #processorNode = null;
-  #onSamples = null;
-
-  get sampleRate() {
-    return this.#audioContext?.sampleRate ?? null;
-  }
-
-  get stream() {
-    return this.#stream;
-  }
+  #noiseReducer = new NoiseReducer();
+  #encoders = [new WavEncoder(), new Mp3Encoder(), new OggEncoder()];
+  #activeEncoders = [];
 
   async init() {
     this.#stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -31,17 +30,39 @@ export class AudioCapture {
     return this.#audioContext.sampleRate;
   }
 
-  start(onSamples) {
-    this.#onSamples = onSamples;
+  start() {
+    const context = {
+      sampleRate: this.#audioContext.sampleRate,
+      stream: this.#stream,
+    };
+
+    this.#activeEncoders = [];
+    const statuses = [];
+
+    for (const encoder of this.#encoders) {
+      const status = encoder.init(context);
+      statuses.push(status);
+      if (status.ready) {
+        this.#activeEncoders.push(encoder);
+      }
+    }
+
+    return statuses;
   }
 
-  stop() {
-    this.#onSamples = null;
+  async stop() {
+    const results = await Promise.all(
+      this.#activeEncoders.map((e) => e.finish())
+    );
+    this.#activeEncoders = [];
+    return results;
   }
 
   #handleAudioProcess(e) {
-    if (this.#onSamples) {
-      this.#onSamples(e.inputBuffer.getChannelData(0));
+    const raw = e.inputBuffer.getChannelData(0);
+    const processed = this.#noiseReducer.process(raw);
+    for (const encoder of this.#activeEncoders) {
+      encoder.feed(processed);
     }
   }
 }

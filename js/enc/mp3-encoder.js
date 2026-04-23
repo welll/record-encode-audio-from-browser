@@ -2,7 +2,11 @@ export class Mp3Encoder {
   #worker = null;
   #resolve = null;
 
-  init(sampleRate) {
+  get name() {
+    return 'mp3';
+  }
+
+  init({ sampleRate }) {
     if (!this.#worker) {
       this.#worker = new Worker('js/enc/mp3/mp3Worker.js');
       this.#worker.onmessage = this.#handleMessage.bind(this);
@@ -17,6 +21,7 @@ export class Mp3Encoder {
         insamplerate: sampleRate,
       },
     });
+    return { ready: true, message: 'MP3 encoder ready (128 kbps)' };
   }
 
   feed(samples) {
@@ -37,7 +42,7 @@ export class Mp3Encoder {
 
   #handleMessage(e) {
     if (e.data.command === 'mp3' && this.#resolve) {
-      this.#resolve(e.data.buf);
+      this.#resolve({ blob: e.data.buf, ext: 'mp3' });
       this.#resolve = null;
     }
   }

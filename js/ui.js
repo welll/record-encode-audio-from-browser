@@ -3,9 +3,6 @@ export class UI {
   #recordingsEl;
   #btnRecord;
   #btnStop;
-  #fmtWav;
-  #fmtMp3;
-  #fmtOgg;
 
   constructor() {
     const $ = (sel) => document.querySelector(sel);
@@ -13,22 +10,11 @@ export class UI {
     this.#recordingsEl = $('#recordings');
     this.#btnRecord = $('#btn-record');
     this.#btnStop = $('#btn-stop');
-    this.#fmtWav = $('#fmt-wav');
-    this.#fmtMp3 = $('#fmt-mp3');
-    this.#fmtOgg = $('#fmt-ogg');
   }
 
   log(msg) {
     this.#logEl.textContent += msg + '\n';
     this.#logEl.scrollTop = this.#logEl.scrollHeight;
-  }
-
-  getSelectedFormats() {
-    return {
-      wav: this.#fmtWav.checked,
-      mp3: this.#fmtMp3.checked,
-      ogg: this.#fmtOgg.checked,
-    };
   }
 
   setRecording(active) {
