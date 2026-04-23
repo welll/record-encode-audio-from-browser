@@ -15,7 +15,12 @@ const encoders = {
 let initialized = false;
 let activeFormats = {};
 
-ui.onRecord(async () => {
+function feedEncoders(samples) {
+  if (activeFormats.wav) encoders.wav.feed(samples);
+  if (activeFormats.mp3) encoders.mp3.feed(samples);
+}
+
+async function handleRecord() {
   try {
     if (!initialized) {
       const sampleRate = await capture.init();
@@ -50,19 +55,15 @@ ui.onRecord(async () => {
       }
     }
 
-    capture.start((samples) => {
-      if (activeFormats.wav) encoders.wav.feed(samples);
-      if (activeFormats.mp3) encoders.mp3.feed(samples);
-    });
-
+    capture.start(feedEncoders);
     ui.setRecording(true);
     ui.log('Recording...');
   } catch (err) {
     ui.log('Error: ' + err.message);
   }
-});
+}
 
-ui.onStop(async () => {
+async function handleStop() {
   capture.stop();
 
   const results = [];
@@ -79,6 +80,8 @@ ui.onStop(async () => {
   ui.setFinished();
   ui.log('Stopped');
   ui.log('Refresh the page to record again.');
-});
+}
 
+ui.onRecord(handleRecord);
+ui.onStop(handleStop);
 ui.log('Ready. Click Record to begin.');

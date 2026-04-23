@@ -23,11 +23,7 @@ export class AudioCapture {
 
     this.#sourceNode = this.#audioContext.createMediaStreamSource(this.#stream);
     this.#processorNode = this.#audioContext.createScriptProcessor(4096, 1, 1);
-    this.#processorNode.onaudioprocess = (e) => {
-      if (this.#onSamples) {
-        this.#onSamples(e.inputBuffer.getChannelData(0));
-      }
-    };
+    this.#processorNode.onaudioprocess = this.#handleAudioProcess.bind(this);
 
     this.#sourceNode.connect(this.#processorNode);
     this.#processorNode.connect(this.#audioContext.destination);
@@ -41,5 +37,11 @@ export class AudioCapture {
 
   stop() {
     this.#onSamples = null;
+  }
+
+  #handleAudioProcess(e) {
+    if (this.#onSamples) {
+      this.#onSamples(e.inputBuffer.getChannelData(0));
+    }
   }
 }

@@ -5,12 +5,7 @@ export class Mp3Encoder {
   init(sampleRate) {
     if (!this.#worker) {
       this.#worker = new Worker('js/enc/mp3/mp3Worker.js');
-      this.#worker.onmessage = (e) => {
-        if (e.data.command === 'mp3' && this.#resolve) {
-          this.#resolve(e.data.buf);
-          this.#resolve = null;
-        }
-      };
+      this.#worker.onmessage = this.#handleMessage.bind(this);
     }
     this.#worker.postMessage({
       command: 'init',
@@ -38,5 +33,12 @@ export class Mp3Encoder {
   destroy() {
     this.#worker?.terminate();
     this.#worker = null;
+  }
+
+  #handleMessage(e) {
+    if (e.data.command === 'mp3' && this.#resolve) {
+      this.#resolve(e.data.buf);
+      this.#resolve = null;
+    }
   }
 }

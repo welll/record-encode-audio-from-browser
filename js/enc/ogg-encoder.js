@@ -30,19 +30,8 @@ export class OggEncoder {
 
     this.#chunks = [];
     this.#mediaRecorder = new MediaRecorder(stream, { mimeType: this.#mimeType });
-
-    this.#mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) this.#chunks.push(e.data);
-    };
-
-    this.#mediaRecorder.onstop = () => {
-      const blob = new Blob(this.#chunks, { type: this.#mimeType });
-      this.#chunks = [];
-      if (this.#resolve) {
-        this.#resolve(blob);
-        this.#resolve = null;
-      }
-    };
+    this.#mediaRecorder.ondataavailable = this.#handleDataAvailable.bind(this);
+    this.#mediaRecorder.onstop = this.#handleStop.bind(this);
 
     this.#mediaRecorder.start();
     return true;
@@ -62,5 +51,18 @@ export class OggEncoder {
       this.#mediaRecorder.stop();
     }
     this.#mediaRecorder = null;
+  }
+
+  #handleDataAvailable(e) {
+    if (e.data.size > 0) this.#chunks.push(e.data);
+  }
+
+  #handleStop() {
+    const blob = new Blob(this.#chunks, { type: this.#mimeType });
+    this.#chunks = [];
+    if (this.#resolve) {
+      this.#resolve(blob);
+      this.#resolve = null;
+    }
   }
 }
