@@ -1,5 +1,64 @@
 // libmp3lame.js - port of libmp3lame to JavaScript using emscripten
-// by Andreas Krennmair <ak@synflood.at>
+/* emcc \
+    libmp3lame/lame.c \
+    libmp3lame/set_get.c \
+    libmp3lame/quantize.c \
+    libmp3lame/quantize_pvt.c \
+    libmp3lame/psymodel.c \
+    libmp3lame/fft.c \
+    libmp3lame/bitstream.c \
+    libmp3lame/encoder.c \
+    libmp3lame/takehiro.c \
+    libmp3lame/reservoir.c \
+    libmp3lame/tables.c \
+    libmp3lame/newmdct.c \
+    libmp3lame/util.c \
+    libmp3lame/id3tag.c \
+    libmp3lame/mpglib_interface.c \
+    libmp3lame/VbrTag.c \
+    libmp3lame/version.c \
+    libmp3lame/presets.c \
+    libmp3lame/gain_analysis.c \
+    mpglib/common.c \
+    mpglib/dct64_i386.c \
+    mpglib/decode_i386.c \
+    mpglib/interface.c \
+    mpglib/layer1.c \
+    mpglib/layer2.c \
+    mpglib/layer3.c \
+    mpglib/tabinit.c \
+    -I include \
+    -I libmp3lame \
+    -I mpglib \
+    -o libmp3lame.js \
+    -O2 \
+    -s TOTAL_MEMORY=16777216 \
+    -s TOTAL_STACK=5242880 \
+    -s FAST_MEMORY=2097152 \
+    -s EXPORTED_FUNCTIONS="[ \
+      '_get_lame_version', \
+      '_lame_init', \
+      '_lame_init_params', \
+      '_lame_set_mode', \
+      '_lame_get_mode', \
+      '_lame_set_num_samples', \
+      '_lame_get_num_samples', \
+      '_lame_set_num_channels', \
+      '_lame_get_num_channels', \
+      '_lame_set_in_samplerate', \
+      '_lame_get_in_samplerate', \
+      '_lame_set_out_samplerate', \
+      '_lame_get_out_samplerate', \
+      '_lame_set_brate', \
+      '_lame_get_brate', \
+      '_lame_encode_buffer_ieee_float', \
+      '_lame_encode_flush', \
+      '_lame_close', \
+      '_malloc', \
+      '_free' \
+    ]" \
+    --post-js lame-wrapper.js
+*/
 
 var Lame = (function() {
 
